@@ -34,8 +34,11 @@ int32_t prevenccntr[MAXENC] = {0,0};
 bool prevprs[MAXENC] = {0,0};
 #define HOLDOFFTIME 150   // TO PREVENT MULTIPLE ROTATE "CLICKS" WITH CHEAP ENCODERS WHEN ONLY ONE CLICK IS INTENDED
 
-
-
+//////////// BT STATUS LED ////////////
+uint8_t BT_LED_Pin = 21;
+boolean BT_LED_State = LOW;
+unsigned long last_LED_update = 0;
+#define LED_UPDATE_MS 1000
 
 
 
@@ -51,6 +54,7 @@ void setup() {
   }
   customKeypad.addEventListener(keypadEvent);
   //customKeypad.setHoldTime(1);
+  pinMode(BT_LED_Pin, OUTPUT);
   bleGamepad.begin();
   Serial.println("Booted!");
 }
@@ -96,6 +100,22 @@ void loop() {
   }
 
   customKeypad.getKey();    // READ BUTTON MATRIX (EVENT CALLBACK SETUP)
+
+  if (now-last_LED_update > LED_UPDATE_MS)
+  {
+    if(bleGamepad.isConnected())
+    {
+      BT_LED_State = HIGH;
+    } else {
+      BT_LED_State = !BT_LED_State;
+    }
+    digitalWrite(BT_LED_Pin, BT_LED_State);
+    Serial.print("BT_LED_State \t");
+    Serial.println(BT_LED_State);
+    Serial.print("bleGamepad.isConnected() \t");
+    Serial.println(bleGamepad.isConnected());
+    last_LED_update = now;
+  }
 
   delay(10);
  
